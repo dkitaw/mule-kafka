@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd">
+	<kafka:producer-config name="Apache_Kafka_Producer_configuration" doc:name="Apache Kafka Producer configuration" doc:id="88cbf079-2e6c-45ab-a099-139c0d88291c" >
+		<kafka:producer-plaintext-connection >
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="localhost:9092" />
+			</kafka:bootstrap-servers>
+		</kafka:producer-plaintext-connection>
+	</kafka:producer-config>
+	<kafka:consumer-config name="Apache_Kafka_Consumer_configuration" doc:name="Apache Kafka Consumer configuration" doc:id="8a57d9eb-625e-441a-8907-a16409a1c50a" >
+		<kafka:consumer-plaintext-connection >
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="localhost:9092" />
+			</kafka:bootstrap-servers>
+			<kafka:topic-patterns >
+				<kafka:topic-pattern value="chatTopic" />
+			</kafka:topic-patterns>
+		</kafka:consumer-plaintext-connection>
+	</kafka:consumer-config>
+	<flow name="kafka-publisher-flow" doc:id="26f6a56a-7017-4ab8-bbc7-063f6c7fe8b2" >
+		<scheduler doc:name="Scheduler" doc:id="2e1c5a1b-9937-414b-a5a4-1320f30be25e" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<kafka:publish doc:name="Publish" doc:id="e3f271e0-ee9f-4eeb-a85f-c05798403d7d" config-ref="Apache_Kafka_Producer_configuration" topic="chatTopic" key="#[now()]">
+			<kafka:message ><![CDATA[#["Kafka is the best " ++ now()]]]></kafka:message>
+		</kafka:publish>
+		<logger level="INFO" doc:name="Logger" doc:id="80f07701-2263-4d6f-baaa-ae5ec6447526" message="Message published to kafka topic"/>
+	</flow>
+	<flow name="kafka-consumer-flow" doc:id="fe222fea-0038-4331-ba9b-a541accf522f" >
+		<kafka:message-listener doc:name="Message listener" doc:id="465f677e-d1ff-42d1-a8de-bd4a1beb02fa" config-ref="Apache_Kafka_Consumer_configuration"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5f8880da-7b34-4498-b46e-53227ad67125" message="#[payload]"/>
+	</flow>
+</mule>
